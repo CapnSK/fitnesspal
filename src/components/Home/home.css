@@ -1,0 +1,16 @@
+.user-data-section{
+    /* border-right: 1px dashed #222; */
+    width: 40%;
+    position: relative;
+}
+
+.show-result-section{
+    /* border-right: 1px dashed #222; */
+    width: 40%;
+    position: absolute;
+    right: 2em;
+    
+}
+/* .backdrop{
+    filter: blur(10px);
+} */
