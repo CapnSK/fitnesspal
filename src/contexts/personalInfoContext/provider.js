@@ -24,7 +24,7 @@ export const PersonalInformationContextProvider = ({ children }) => {
         age: personalInfoContext.age,
         gender: personalInfoContext.gender,
         lifestyle: personalInfoContext.lifestyle,
-        setsetPersonalInformationContext: (context) => {
+        setPersonalInformationContext: (context) => {
             personalInfoContextSetter(context);
         }
     }), [personalInfoContext.name, personalInfoContext.email, personalInfoContext.goal, personalInfoContext.weight, personalInfoContext.height, personalInfoContext.fat, personalInfoContext.age, personalInfoContext.gender, personalInfoContext.lifestyle]);

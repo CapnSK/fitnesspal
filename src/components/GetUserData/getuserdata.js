@@ -31,7 +31,7 @@ const GetUserData = ({ setRequestId }) => {
         });
         try {
             const POST_DATA_ENDPOINT = `${process.env.REACT_APP_API_GATEWAY_URL || ""}${process.env.REACT_APP_POST_USER_DATA_ENDPOINT || ""}`;
-            const id = uuidv4;
+            const id = uuidv4();
             const response = await axios.post(POST_DATA_ENDPOINT, {
                 id,
                 name,
@@ -61,7 +61,7 @@ const GetUserData = ({ setRequestId }) => {
             {/* <div className="backdrop">
             </div> */}
             <div className="form">
-                <form onSubmit={handleSubmit}>
+                <form>
                     <Typography fontFamily={"unset"} variant="subtitle1" align="left" color="black" style={{ margin: "1em" }}>
                         Please answer the following questions
                     </Typography>
@@ -112,14 +112,14 @@ const GetUserData = ({ setRequestId }) => {
                                 value={lifestyle}
                                 label="Lifestyle"
                                 onChange={(e) => setLifeStyle(e.target.value)}
-                                defaultValue="mg"
+                                defaultValue="ma"
 
                                 required
                                 sx={{ input: { color: "black", outlineColor: "white", fontFamily: "poppins" } }}
                             >
                                 <MenuItem sx={{ fontFamily: "poppins" }} value={"se"}>Sedentary</MenuItem>
                                 <MenuItem sx={{ fontFamily: "poppins" }} value={"ma"}>Moderately Active</MenuItem>
-                                <MenuItem sx={{ fontFamily: "poppins" }} value={"wl"}>Rigorously Active</MenuItem>
+                                <MenuItem sx={{ fontFamily: "poppins" }} value={"ra"}>Rigorously Active</MenuItem>
                             </Select>
                         </FormControl>
                         <FormControl fullWidth style={{ marginTop: "1em", marginBottom: "0.3em" }}>
@@ -130,7 +130,7 @@ const GetUserData = ({ setRequestId }) => {
                                 value={gender}
                                 label="Gender"
                                 onChange={(e) => setGender(e.target.value)}
-                                defaultValue="mg"
+                                defaultValue="M"
                                 required
                                 sx={{ input: { color: "black", outlineColor: "white", fontFamily: "poppins" } }}
                             >
@@ -186,7 +186,7 @@ const GetUserData = ({ setRequestId }) => {
                         />
                     </div>
 
-                    <Button variant="contained" className="submit-button">Submit</Button>
+                    <Button onClick={handleSubmit} variant="contained" className="submit-button">Submit</Button>
                 </form>
             </div>
         </>

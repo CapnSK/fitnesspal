@@ -27,7 +27,6 @@ const mockData = {
 const ShowOutput = ({ requestId }) => {
     const [nutritionData, setNutritionData] = useState(undefined);
     const { email, name } = useContext(PersonalInformationContext);
-    // requestId = "dummy";
     const [isLoading, setIsLoading] = useState(requestId && !nutritionData);
 
 
@@ -42,14 +41,14 @@ const ShowOutput = ({ requestId }) => {
             let stopPolling = false;
             setIsLoading(true);
             const FETCH_IMPORT_STATUS_ENDPOINT = `${process.env.REACT_APP_API_GATEWAY_URL}${process.env.REACT_APP_FETCH_IMPORT_STATUS_ENDPOINT}/${email}`;
-            const FETCH_USER_DATA_ENDPOINT = `${process.env.REACT_APP_API_GATEWAY_URL}/${email}`;
+            const FETCH_USER_DATA_ENDPOINT = `${process.env.REACT_APP_API_GATEWAY_URL}/${process.env.REACT_APP_GET_USER_DATA_ENDPOINT}/${email}`;
             const intervalId = setInterval(async () => {
                 try{
                     let response = await axios.get(FETCH_IMPORT_STATUS_ENDPOINT);
                     if(response.status === 200 && response.data.status === "Done"){
                         console.info("The processing is complete", response.data);
                         response = await axios.get(FETCH_USER_DATA_ENDPOINT);
-                        if(response.status === 200 && response.data.macros){
+                        if(response.status === 200 && response.data.macroDistribution){
                             stopPolling = true;
                             processData(response.data);
                         }
@@ -62,7 +61,7 @@ const ShowOutput = ({ requestId }) => {
                 }
             }, 1000);
         }
-    }, []);
+    }, [requestId]);
 
     return (
         <div className="form">
@@ -93,37 +92,37 @@ const ShowOutput = ({ requestId }) => {
                                 <Table sx={{ minWidth: 350 }} aria-label="maro-table" style={{ filter: "blur('5px')" }}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Macro Type</TableCell>
-                                            <TableCell align="center">Intake (in gms)</TableCell>
-                                            <TableCell align="center">Calories</TableCell>
+                                            <TableCell style={{fontWeight: "bold" , fontFamily:"unset"}}>Macro Type</TableCell>
+                                            <TableCell style={{fontWeight: "bold" , fontFamily:"unset"}} align="center">Intake (in gms)</TableCell>
+                                            <TableCell style={{fontWeight: "bold" , fontFamily:"unset"}} align="center">Calories</TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    <TableBody>
+                                    <TableBody style={{fontFamily:"unset"}}>
                                         <TableRow>
-                                            <TableCell>Protien</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.P}</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.P * 4}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}}>Protein</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.P}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.P * 4}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell>Carbs</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.C}</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.C * 4}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}}>Carbs</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.C}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.C * 4}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell>Fats</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.Fa}</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.Fa * 9}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}}>Fats</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.Fa}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.Fa * 9}</TableCell>
                                         </TableRow>
                                         <TableRow>
-                                            <TableCell>Fibers</TableCell>
-                                            <TableCell align="center">{nutritionData.macroDistribution.Fi}</TableCell>
-                                            <TableCell align="center">-</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}}>Fibers</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">{nutritionData.macroDistribution.Fi}</TableCell>
+                                            <TableCell style={{fontFamily:"unset"}} align="center">-</TableCell>
                                         </TableRow>
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                            <Typography fontFamily={"unset"} variant="subtitle2" align="left" color="coral" style={{marginTop: "2em"}}>
-                                Remember {name || "buddy"} that the greatest battles are fought in the minds first! Hope that you stick to a strict regime and achieve the result that you want.
+                            <Typography fontFamily={"unset"} variant="subtitle2" align="left" color="coral" style={{marginTop: "2em", padding: "0.2em", "background-color": "rgba(0,0,0,0.4)"}}>
+                                Remember {name || "buddy"}, the greatest battles are won in the mind first! Hope that you stick to a strict regime and achieve the result that you want.
                             </Typography>
                         </>
                     ) : "")}
