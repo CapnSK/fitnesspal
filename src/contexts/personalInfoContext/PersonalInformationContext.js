@@ -8,6 +8,8 @@ export const PersonalInformationContext = createContext({
     height: undefined,
     fat: undefined,
     age: undefined,
+    gender: undefined,
+    lifestyle: undefined,
     setPersonalInformationContext: () => {
         throw new Error("PersonalInformationContext function must have a consumer implementation")
     }

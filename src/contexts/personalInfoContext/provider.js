@@ -9,7 +9,9 @@ export const PersonalInformationContextProvider = ({ children }) => {
         weight: undefined,
         height: undefined,
         fat: undefined,
-        age: undefined
+        age: undefined,
+        gender: undefined,
+        lifestyle: undefined,
     });
 
     const value = useMemo(() => ({
@@ -20,10 +22,12 @@ export const PersonalInformationContextProvider = ({ children }) => {
         height: personalInfoContext.height,
         fat: personalInfoContext.fat,
         age: personalInfoContext.age,
+        gender: personalInfoContext.gender,
+        lifestyle: personalInfoContext.lifestyle,
         setsetPersonalInformationContext: (context) => {
             personalInfoContextSetter(context);
         }
-    }), [personalInfoContext.name, personalInfoContext.email, personalInfoContext.goal, personalInfoContext.weight, personalInfoContext.height, personalInfoContext.fat, personalInfoContext.age]);
+    }), [personalInfoContext.name, personalInfoContext.email, personalInfoContext.goal, personalInfoContext.weight, personalInfoContext.height, personalInfoContext.fat, personalInfoContext.age, personalInfoContext.gender, personalInfoContext.lifestyle]);
 
     return (
         <PersonalInformationContext.Provider value={value}>{children}</PersonalInformationContext.Provider>
