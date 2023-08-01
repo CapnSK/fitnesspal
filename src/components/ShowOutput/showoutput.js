@@ -121,7 +121,7 @@ const ShowOutput = ({ requestId }) => {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                            <Typography fontFamily={"unset"} variant="subtitle2" align="left" color="coral" style={{marginTop: "2em", padding: "0.2em", "background-color": "rgba(0,0,0,0.4)"}}>
+                            <Typography fontFamily={"unset"} variant="subtitle2" align="left" color="coral" style={{marginTop: "2em", padding: "0.2em", "backgroundColor": "rgba(0,0,0,0.4)"}}>
                                 Remember {name || "buddy"}, the greatest battles are won in the mind first! Hope that you stick to a strict regime and achieve the result that you want.
                             </Typography>
                         </>
