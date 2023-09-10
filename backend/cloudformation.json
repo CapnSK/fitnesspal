@@ -1,0 +1,635 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "The AWS CloudFormation template for this Serverless application",
+    "Resources": {
+        "PostUserDataLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "csci-5409-term-source",
+                    "S3Key": "adv-cloud-computing-term-assignment.zip"
+                },
+                "Handler": "src/user.postUserData",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "adv-cloud-computing-term-assignment-dev-postUserData",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Environment": {
+                    "Variables": {
+                        "STEP_FUNCTION_ARN": {
+                            "Fn::GetAtt": [
+                                "UserDataProcess",
+                                "Arn"
+                            ]
+                        }
+                    }
+                },
+                "Role": "arn:aws:iam::577154829723:role/LabRole"
+            }
+        },
+        "GetUserDataLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "csci-5409-term-source",
+                    "S3Key": "adv-cloud-computing-term-assignment.zip"
+                },
+                "Handler": "src/user.getUserData",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "adv-cloud-computing-term-assignment-dev-getUserData",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": "arn:aws:iam::577154829723:role/LabRole"
+            }
+        },
+        "GetImportStatusLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "csci-5409-term-source",
+                    "S3Key": "adv-cloud-computing-term-assignment.zip"
+                },
+                "Handler": "src/user.getImportStatus",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "adv-cloud-computing-term-assignment-dev-getImportStatus",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": "arn:aws:iam::577154829723:role/LabRole"
+            }
+        },
+        "CalculateWeightGainLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "csci-5409-term-source",
+                    "S3Key": "adv-cloud-computing-term-assignment.zip"
+                },
+                "Handler": "src/core.calculateWeightGain",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "adv-cloud-computing-term-assignment-dev-calculateWeightGain",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": "arn:aws:iam::577154829723:role/LabRole"
+            }
+        },
+        "CalculateWeightLossLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": "csci-5409-term-source",
+                    "S3Key": "adv-cloud-computing-term-assignment.zip"
+                },
+                "Handler": "src/core.calculateWeightLoss",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "adv-cloud-computing-term-assignment-dev-calculateWeightLoss",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": "arn:aws:iam::577154829723:role/LabRole"
+            }
+        },
+        "UserDataProcess": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Properties": {
+                "DefinitionString": {
+                    "Fn::Sub": [
+                        "{\n  \"Comment\": \"Process Data Depending on User's Goals\",\n  \"StartAt\": \"goalDecide\",\n  \"States\": {\n    \"goalDecide\": {\n      \"Type\": \"Choice\",\n      \"Choices\": [\n        {\n          \"Variable\": \"$.goal\",\n          \"StringEquals\": \"weightGain\",\n          \"Next\": \"weightGain\"\n        },\n        {\n          \"Variable\": \"$.goal\",\n          \"StringEquals\": \"weightLoss\",\n          \"Next\": \"weightLoss\"\n        }\n      ]\n    },\n    \"weightGain\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${calcWeightGain}\",\n      \"End\": true\n    },\n    \"weightLoss\": {\n      \"Type\": \"Task\",\n      \"Resource\": \"${calcWeightLoss}\",\n      \"End\": true\n    }\n  }\n}",
+                        {
+                            "calcWeightGain": {
+                                "Fn::GetAtt": [
+                                    "CalculateWeightGainLambdaFunction",
+                                    "Arn"
+                                ]
+                            },
+                            "calcWeightLoss": {
+                                "Fn::GetAtt": [
+                                    "CalculateWeightLossLambdaFunction",
+                                    "Arn"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "RoleArn": "arn:aws:iam::577154829723:role/LabRole",
+                "StateMachineName": "UserDataProcess"
+            },
+            "DependsOn": []
+        },
+        "ApiGatewayRestApi": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+                "Name": "dev-adv-cloud-computing-term-assignment",
+                "EndpointConfiguration": {
+                    "Types": [
+                        "EDGE"
+                    ]
+                },
+                "Policy": ""
+            }
+        },
+        "ApiGatewayResourceData": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Fn::GetAtt": [
+                        "ApiGatewayRestApi",
+                        "RootResourceId"
+                    ]
+                },
+                "PathPart": "data",
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayResourceDataEmailVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Ref": "ApiGatewayResourceData"
+                },
+                "PathPart": "{email}",
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayResourceImportstatus": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Fn::GetAtt": [
+                        "ApiGatewayRestApi",
+                        "RootResourceId"
+                    ]
+                },
+                "PathPart": "importStatus",
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayResourceImportstatusEmailVar": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Ref": "ApiGatewayResourceImportstatus"
+                },
+                "PathPart": "{email}",
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayMethodDataOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Origin": true,
+                            "method.response.header.Access-Control-Allow-Headers": true,
+                            "method.response.header.Access-Control-Allow-Methods": true
+                        },
+                        "ResponseModels": {}
+                    }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                    "Type": "MOCK",
+                    "RequestTemplates": {
+                        "application/json": "{statusCode:200}"
+                    },
+                    "ContentHandling": "CONVERT_TO_TEXT",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200",
+                            "ResponseParameters": {
+                                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,POST'"
+                            },
+                            "ResponseTemplates": {
+                                "application/json": ""
+                            }
+                        }
+                    ]
+                },
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceData"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayMethodDataEmailVarOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Origin": true,
+                            "method.response.header.Access-Control-Allow-Headers": true,
+                            "method.response.header.Access-Control-Allow-Methods": true
+                        },
+                        "ResponseModels": {}
+                    }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                    "Type": "MOCK",
+                    "RequestTemplates": {
+                        "application/json": "{statusCode:200}"
+                    },
+                    "ContentHandling": "CONVERT_TO_TEXT",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200",
+                            "ResponseParameters": {
+                                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                            },
+                            "ResponseTemplates": {
+                                "application/json": ""
+                            }
+                        }
+                    ]
+                },
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceDataEmailVar"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayMethodImportstatusEmailVarOptions": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "AuthorizationType": "NONE",
+                "HttpMethod": "OPTIONS",
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Origin": true,
+                            "method.response.header.Access-Control-Allow-Headers": true,
+                            "method.response.header.Access-Control-Allow-Methods": true
+                        },
+                        "ResponseModels": {}
+                    }
+                ],
+                "RequestParameters": {},
+                "Integration": {
+                    "Type": "MOCK",
+                    "RequestTemplates": {
+                        "application/json": "{statusCode:200}"
+                    },
+                    "ContentHandling": "CONVERT_TO_TEXT",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200",
+                            "ResponseParameters": {
+                                "method.response.header.Access-Control-Allow-Origin": "'*'",
+                                "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent,X-Amzn-Trace-Id'",
+                                "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET'"
+                            },
+                            "ResponseTemplates": {
+                                "application/json": ""
+                            }
+                        }
+                    ]
+                },
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceImportstatusEmailVar"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                }
+            }
+        },
+        "ApiGatewayMethodDataPost": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "POST",
+                "RequestParameters": {},
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceData"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": false,
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:",
+                                {
+                                    "Ref": "AWS::Partition"
+                                },
+                                ":apigateway:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":lambda:path/2015-03-31/functions/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "PostUserDataLambdaFunction",
+                                        "Arn"
+                                    ]
+                                },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                },
+                "MethodResponses": []
+            },
+            "DependsOn": [
+                "PostUserDataLambdaPermissionApiGateway"
+            ]
+        },
+        "ApiGatewayMethodDataEmailVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "GET",
+                "RequestParameters": {},
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceDataEmailVar"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": false,
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:",
+                                {
+                                    "Ref": "AWS::Partition"
+                                },
+                                ":apigateway:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":lambda:path/2015-03-31/functions/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "GetUserDataLambdaFunction",
+                                        "Arn"
+                                    ]
+                                },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                },
+                "MethodResponses": []
+            },
+            "DependsOn": [
+                "GetUserDataLambdaPermissionApiGateway"
+            ]
+        },
+        "ApiGatewayMethodImportstatusEmailVarGet": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "HttpMethod": "GET",
+                "RequestParameters": {},
+                "ResourceId": {
+                    "Ref": "ApiGatewayResourceImportstatusEmailVar"
+                },
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                },
+                "ApiKeyRequired": false,
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "IntegrationHttpMethod": "POST",
+                    "Type": "AWS_PROXY",
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:",
+                                {
+                                    "Ref": "AWS::Partition"
+                                },
+                                ":apigateway:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":lambda:path/2015-03-31/functions/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "GetImportStatusLambdaFunction",
+                                        "Arn"
+                                    ]
+                                },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                },
+                "MethodResponses": []
+            },
+            "DependsOn": [
+                "GetImportStatusLambdaPermissionApiGateway"
+            ]
+        },
+        "ApiGatewayDeployment1690479270323": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "ApiGatewayRestApi"
+                },
+                "StageName": "dev"
+            },
+            "DependsOn": [
+                "ApiGatewayMethodDataOptions",
+                "ApiGatewayMethodDataEmailVarOptions",
+                "ApiGatewayMethodImportstatusEmailVarOptions",
+                "ApiGatewayMethodDataPost",
+                "ApiGatewayMethodDataEmailVarGet",
+                "ApiGatewayMethodImportstatusEmailVarGet"
+            ]
+        },
+        "PostUserDataLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "PostUserDataLambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                                "Ref": "ApiGatewayRestApi"
+                            },
+                            "/*/*"
+                        ]
+                    ]
+                }
+            }
+        },
+        "GetUserDataLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "GetUserDataLambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                                "Ref": "ApiGatewayRestApi"
+                            },
+                            "/*/*"
+                        ]
+                    ]
+                }
+            }
+        },
+        "GetImportStatusLambdaPermissionApiGateway": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "GetImportStatusLambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:",
+                            {
+                                "Ref": "AWS::Partition"
+                            },
+                            ":execute-api:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":",
+                            {
+                                "Ref": "ApiGatewayRestApi"
+                            },
+                            "/*/*"
+                        ]
+                    ]
+                }
+            }
+        },
+        "userTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": "user-details",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "email",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "email",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 2,
+                    "WriteCapacityUnits": 2
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "ServiceEndpoint": {
+            "Description": "URL of the service endpoint",
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Ref": "ApiGatewayRestApi"
+                        },
+                        ".execute-api.",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        ".",
+                        {
+                            "Ref": "AWS::URLSuffix"
+                        },
+                        "/dev"
+                    ]
+                ]
+            },
+            "Export": {
+                "Name": "sls-adv-cloud-computing-term-assignment-dev-ServiceEndpoint"
+            }
+        }
+    }
+}
